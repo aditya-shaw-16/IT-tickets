@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import TicketCard from "../components/TicketCard";
 import Navbar from "../components/navbar";
 import AlertBox from "../components/AlertBox";
 
@@ -51,7 +52,7 @@ function EmployeeDashboard() {
 
       if (res.ok) {
         toast.success("Ticket confirmed successfully");
-        fetchTickets();
+        fetchTickets(); // refresh list
       } else {
         toast.error(data.error || "Failed to confirm ticket");
       }
@@ -67,14 +68,15 @@ function EmployeeDashboard() {
       <div style={{ padding: "2rem" }}>
         <h2>Your Tickets</h2>
         <button
-          onClick={() => navigate("/employee/raise-ticket")}
+          onClick={() => navigate("/raiseTicket")}
           style={{ marginBottom: "1rem", padding: "8px 16px" }}
         >
           Raise New Ticket
         </button>
 
+        {/* Optional alert for resolved tickets (keep or remove as needed) */}
         {tickets
-          .filter((t) => t.status === "RESOLVED")
+          .filter((t) => t.status === "resolved")
           .map((t) => (
             <AlertBox
               key={t.id}
@@ -90,29 +92,14 @@ function EmployeeDashboard() {
             />
           ))}
 
-        {tickets.length === 0 ? (
-          <p>No tickets found.</p>
-        ) : (
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr>
-                <th style={{ border: "1px solid #ccc", padding: "8px" }}>Subject</th>
-                <th style={{ border: "1px solid #ccc", padding: "8px" }}>Status</th>
-                <th style={{ border: "1px solid #ccc", padding: "8px" }}>Created</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tickets.map((ticket) => (
-                <tr key={ticket.id}>
-                  <td style={{ border: "1px solid #ccc", padding: "8px" }}>{ticket.subject}</td>
-                  <td style={{ border: "1px solid #ccc", padding: "8px" }}>{ticket.status}</td>
-                  <td style={{ border: "1px solid #ccc", padding: "8px" }}>
-                    {new Date(ticket.createdAt).toLocaleString()}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {tickets.filter(t => t.status === 'open' || t.status === 'resolved').length === 0 ? (
+          <p>No Active Tickets.</p>
+        ):(
+          tickets
+            .filter(t => t.status === 'open' || t.status === 'resolved')
+            .map(t =>(
+              <TicketCard key={t.id} ticket={t} userRole="employee" />
+            ))
         )}
       </div>
     </>

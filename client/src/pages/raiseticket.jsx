@@ -1,16 +1,39 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { jwtDecode } from 'jwt-decode'; 
 import 'react-toastify/dist/ReactToastify.css';
 
 function RaiseTicket() {
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
+  const [role, setRole] = useState('');
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        setRole(decoded.role);
+      } catch (err) {
+        console.error("Token decode error:", err);
+      }
+    }
+  }, []);
+
+  const handleBack = () => {
+    if (role === 'IT' || role === 'ADMIN') {
+      navigate('/dashboard');
+    } else {
+      navigate('/myDashboard');
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     const token = localStorage.getItem('token');
-
     if (!token) {
       toast.error('User not authenticated.');
       return;
@@ -43,6 +66,22 @@ function RaiseTicket() {
 
   return (
     <div style={{ padding: '2rem', maxWidth: '600px', margin: 'auto' }}>
+      {/* 🔙 Back Button */}
+      <button
+        onClick={handleBack}
+        style={{
+          marginBottom: '1.5rem',
+          padding: '8px 16px',
+          backgroundColor: '#1e40af',
+          color: '#fff',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer'
+        }}
+      >
+        ← Back to Dashboard
+      </button>
+
       <h2>Raise a Ticket</h2>
 
       <form onSubmit={handleSubmit}>

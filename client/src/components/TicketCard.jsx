@@ -1,43 +1,78 @@
 function TicketCard({ ticket, userRole }) {
   const handleResolve = async () => {
-  try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/tickets/${ticket.id}/resolve`, {
-      method: 'PATCH',
-    });
-    if (res.ok) {
-      window.location.reload(); // or trigger local state update
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/tickets/${ticket.id}/resolve`, {
+        method: 'PATCH',
+      });
+      if (res.ok) {
+        window.location.reload();
+      }
+    } catch (err) {
+      console.error('Error resolving ticket:', err);
     }
-  } catch (err) {
-    console.error('Error resolving ticket:', err);
-  }
-};
+  };
 
-const handleConfirm = async () => {
-  try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/tickets/${ticket.id}/confirm`, {
-      method: 'PATCH',
-    });
-    if (res.ok) {
-      window.location.reload();
+  const handleConfirm = async () => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/tickets/${ticket.id}/confirm`, {
+        method: 'PATCH',
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        }
+      });
+      if (res.ok) {
+        window.location.reload();
+      } else {
+        const errorData = await res.json();
+        console.error("confirm failed:", errorData);
+      }
+    } catch (err) {
+      console.error('Error confirming ticket:', err);
     }
-  } catch (err) {
-    console.error('Error confirming ticket:', err);
-  }
-};
+  };
 
-const handleReopen = async () => {
-  try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/tickets/${ticket.id}/reopen`, {
-      method: 'PATCH',
-    });
-    if (res.ok) {
-      window.location.reload();
+  const handleDeny = async () => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/tickets/${ticket.id}/deny`, {
+        method: 'PATCH',
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        }
+      });
+      if (res.ok) {
+        window.location.reload();
+      } else {
+        const errorData = await res.json();
+        console.error("Deny failed:", errorData);
+      }
+    } catch (err) {
+      console.error('Error denying ticket:', err);
     }
-  } catch (err) {
-    console.error('Error reopening ticket:', err);
-  }
-};
+  };
 
+  const handlePriorityChange = async (e) => {
+    const newPriority = e.target.value;
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/tickets/${ticket.id}/priority`, {
+        method: 'PATCH',
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({ priority: newPriority }),
+      });
+      if (res.ok) {
+        window.location.reload();
+      } else {
+        const errorData = await res.json();
+        console.error("Priority update failed:", errorData);
+      }
+    } catch (err) {
+      console.error("Priority update error:", err);
+    }
+  };
 
   const formattedDate = new Date(ticket.createdAt).toLocaleDateString();
 
@@ -60,6 +95,18 @@ const handleReopen = async () => {
       </p>
       <p><strong>Date:</strong> {formattedDate}</p>
 
+      {/* IT-specific priority dropdown */}
+      {userRole === 'it' && ticket.status === 'open' && (
+        <div style={{ marginTop: '0.5rem', marginBottom: '1rem' }}>
+          <label style={{ marginRight: '10px' }}>Set Priority:</label>
+          <select value={ticket.priority} onChange={handlePriorityChange}>
+            <option value="P0">P0 (Same Day)</option>
+            <option value="P1">P1 (Next Day)</option>
+            <option value="P2">P2 (Next to Next Day)</option>
+          </select>
+        </div>
+      )}
+
       {/* Role-specific buttons */}
       <div style={{ marginTop: '1rem' }}>
         {userRole === 'it' && ticket.status === 'open' && (
@@ -73,13 +120,12 @@ const handleReopen = async () => {
             <button onClick={handleConfirm} style={{ marginRight: '10px' }}>
               ✅ Confirm Resolution
             </button>
-            <button onClick={handleReopen}>
-              ❌ Reopen Ticket
+            <button onClick={handleDeny}>
+              ❌ Deny
             </button>
           </>
         )}
       </div>
-
     </div>
   );
 }

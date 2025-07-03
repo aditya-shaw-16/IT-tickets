@@ -25,6 +25,8 @@ function Login() {
         // ✅ Redirect based on role
         if (data.user.role === "EMPLOYEE") {
           window.location.href = "/myDashboard";
+        } else if (data.user.role === "IT") {
+          window.location.href = "/dashboard";
         } else {
           toast.error("Unauthorized role");
         }
@@ -63,6 +65,12 @@ function Login() {
             onChange={(e) => setPassword(e.target.value)}
             style={{ width: "100%", padding: "8px" }}
           />
+          <p style={{ marginTop: '0.5rem' }}>
+            <a href="/forgotPassword" style={{ color: '#007bff', textDecoration: 'none' }}>
+              Forgot Password?
+            </a>
+          </p>
+
         </div>
 
         <button type="submit" style={{ padding: "8px 16px" }}>

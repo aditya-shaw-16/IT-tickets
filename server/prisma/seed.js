@@ -6,6 +6,7 @@ const prisma = new PrismaClient();
 async function seed() {
   const password1 = await bcrypt.hash("123456", 10);  // Matches your login
   const password2 = await bcrypt.hash("emp456", 10);
+  const password3 = await bcrypt.hash("123456", 10); 
 
   await prisma.user.createMany({
     data: [
@@ -22,6 +23,13 @@ async function seed() {
         phone: "9123456780",
         password: password2,
         role: "EMPLOYEE",
+      },
+      {
+        name: "IT",
+        email: "imadishaw@gmail.com",
+        phone: "8287277566",
+        password: password3,
+        role: "IT",
       },
     ],
   });
