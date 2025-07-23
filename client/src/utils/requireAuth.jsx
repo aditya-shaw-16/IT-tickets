@@ -9,15 +9,15 @@ const roleRoutes = {
     '/raiseTicket',
   ],
   EMPLOYEE: ['/myDashboard', '/myTickets'],
-  IT: ['/dashboard', '/history', '/tickets'],
-  ADMIN: ['/dashboard', '/history', '/tickets'],
+  IT: ['/dashboard', '/history', '/tickets', '/raiseEmployeeTicket'],
+  ADMIN: ['/dashboard', '/history', '/tickets', '/raiseEmployeeTicket', '/admin/CreateUser', '/admin/DeleteUser'],
 };
 
 const RequireAuth = () => {
   const location = useLocation();
   const token = localStorage.getItem('token');
   const user = JSON.parse(localStorage.getItem('user'));
-  const role = user?.role;
+  const role = user?.role.toUpperCase();
   const path = location.pathname;
 
   if (!token || !role) {

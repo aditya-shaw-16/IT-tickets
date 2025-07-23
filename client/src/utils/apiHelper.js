@@ -7,6 +7,6 @@ export const handleAuthError = (error) => {
   ) {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    window.location.href = '/login'; // redirect to login
+    window.location.href = '/'; // redirect to login
   }
 };

@@ -28,14 +28,25 @@ model User {
 
 
 model Ticket {
-  id            Int      @id @default(autoincrement())
-  subject       String
-  description   String
-  status        String   @default("open") // open, resolved, pending, closed
-  priority      String   @default("P2")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
-  employeeId    Int
-  employee      User     @relation(fields: [employeeId], references: [id])
+  id                 Int       @id @default(autoincrement())
+  subject            String
+  description        String
+  status             String    @default("open")
+  priority           String    @default("P2")
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  employee           User      @relation(fields: [employeeId], references: [id])
+  employeeId         Int
+  deletionRequested  Boolean   @default(false) // ✅ NEW
 }
+
+
+model Otp {
+  id        Int      @id @default(autoincrement())
+  email     String
+  phone     String
+  otp       String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+

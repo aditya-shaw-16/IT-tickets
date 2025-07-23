@@ -14,6 +14,9 @@ import ChangePassword from './pages/changePassword';
 import ChangePhone from './pages/changePhone';
 import ResetPassword from './pages/resetPassword';
 import ForgotPassword from './pages/forgotPassword';
+import RaiseEmployeeTicket from './pages/raiseEmployeeTicket';
+import CreateUser from './pages/createUser';
+import DeleteUser from './pages/deleteUser';
 
 function App() {
   return (
@@ -36,6 +39,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/tickets" element={<Tickets />} />
           <Route path="/history" element={<History />} />
+          <Route path="/raiseEmployeeTicket" element={<RaiseEmployeeTicket />} />
         </Route>
 
         {/* Employee only */}
@@ -43,6 +47,14 @@ function App() {
           <Route path="/myDashboard" element={<EmployeeDashboard />} />
           <Route path="/myTickets" element={<EmployeeTickets />} />
         </Route>
+
+
+        <Route element={<RequireAuth allowedRoles={['admin']} />}>
+          <Route path="/admin/createUser" element={<createUser />} />
+          <Route path="/admin/deleteUser" element={<deleteUser />} />
+        </Route>
+
+
       </Routes>
 
       <ToastContainer

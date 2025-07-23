@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
 import authRoutes from './routes/auth.js';
+import adminRoutes from './routes/admin.js'; 
 import ticketsRouter from './routes/tickets.js';
 
 
@@ -16,6 +17,7 @@ app.use(cors());
 app.use(express.json());
 app.use('/auth', authRoutes);
 app.use('/tickets', ticketsRouter);
+app.use('/admin', adminRoutes); 
 
 // Health check route
 app.get('/', (req, res) => {

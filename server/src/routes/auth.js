@@ -138,26 +138,38 @@ router.patch('/changePassword', authMiddleware, async (req, res) => {
   }
 });
 
+// PATCH /auth/changePhone
 router.patch('/changePhone', authMiddleware, async (req, res) => {
-  const userId = req.user.id;
-  const { newPhone } = req.body;
+  const { currentPassword, newPhone } = req.body;
 
-  if (!newPhone) {
-    return res.status(400).json({ error: 'New phone number is required' });
+  if (!currentPassword || !newPhone) {
+    return res.status(400).json({ error: 'Both current password and new phone are required' });
   }
 
   try {
-    const updatedUser = await prisma.user.update({
-      where: { id: userId },
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: 'Invalid password' });
+    }
+
+    await prisma.user.update({
+      where: { id: req.user.id },
       data: { phone: newPhone },
     });
 
-    res.json({ message: 'Phone number updated successfully', user: updatedUser });
+    res.json({ message: 'Phone number updated successfully' });
   } catch (err) {
-    console.error('Error updating phone number:', err);
-    res.status(500).json({ error: 'Server error while updating phone' });
+    console.error('Change phone error:', err);
+    res.status(500).json({ error: 'Server error' });
   }
 });
+
 
 
 

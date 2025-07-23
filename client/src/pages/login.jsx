@@ -23,9 +23,9 @@ function Login() {
         localStorage.setItem("user", JSON.stringify(data.user));
 
         // ✅ Redirect based on role
-        if (data.user.role === "EMPLOYEE") {
+        if (data.user.role === "EMPLOYEE" ) {
           window.location.href = "/myDashboard";
-        } else if (data.user.role === "IT") {
+        } else if (data.user.role === "IT" || data.user.role === "ADMIN") {
           window.location.href = "/dashboard";
         } else {
           toast.error("Unauthorized role");

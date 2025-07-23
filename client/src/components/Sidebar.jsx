@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { FaTachometerAlt, FaList, FaArchive, FaSignOutAlt, FaHistory, FaTicketAlt, FaCog } from 'react-icons/fa';
+import { FaTachometerAlt, FaList, FaArchive, FaSignOutAlt, FaHistory, FaTicketAlt, FaCog, FaUserPlus, FaUserTimes } from 'react-icons/fa';
 
 function Sidebar() {
   const [user, setUser] = useState(null);
@@ -37,21 +37,36 @@ function Sidebar() {
       boxShadow: '2px 0 6px rgba(0,0,0,0.1)'
     }}>
       <div>
-        <h2 style={{ marginBottom: '0.5rem', color: '#38bdf8' }}>IT Tickets...</h2>
-        {user && (
-          <div style={{ fontSize: '0.9rem', marginBottom: '2rem' }}>
-            Welcome, <strong>{user.name}</strong>
-          </div>
-        )}
+  <h2 style={{ marginBottom: '0.5rem', color: '#38bdf8' }}>IT Tickets...</h2>
+  {user && (
+    <div style={{ fontSize: '0.9rem', marginBottom: '2rem' }}>
+      Welcome, <strong>{user.name}</strong>
+    </div>
+  )}
 
-        <ul style={{ listStyle: 'none', padding: 0 }}>
-          <li style={navItemStyle}><FaTachometerAlt style={iconStyle} /><Link to="/dashboard" style={linkStyle}>Dashboard</Link></li>
-          <li style={navItemStyle}><FaList style={iconStyle} /><Link to="/tickets" style={linkStyle}>All Tickets</Link></li>
-          <li style={navItemStyle}><FaTicketAlt style={iconStyle} /><Link to="/raiseTicket" style={linkStyle}>Raise Ticket</Link></li>
-          <li style={navItemStyle}><FaHistory style={iconStyle} /><Link to="/history" style={linkStyle}>History</Link></li>
-          <li style={navItemStyle}><FaArchive style={iconStyle} /><Link to="/archive" style={linkStyle}>Archive</Link></li>
-        </ul>
-      </div>
+  <ul style={{ listStyle: 'none', padding: 0 }}>
+    <li style={navItemStyle}><FaTachometerAlt style={iconStyle} /><Link to="/dashboard" style={linkStyle}>Dashboard</Link></li>
+    <li style={navItemStyle}><FaList style={iconStyle} /><Link to="/tickets" style={linkStyle}>All Tickets</Link></li>
+    <li style={navItemStyle}><FaTicketAlt style={iconStyle} /><Link to="/raiseTicket" style={linkStyle}>Raise Ticket</Link></li>
+    <li style={navItemStyle}><FaHistory style={iconStyle} /><Link to="/history" style={linkStyle}>History</Link></li>
+    <li style={navItemStyle}><FaArchive style={iconStyle} /><Link to="/archive" style={linkStyle}>Archive</Link></li>
+
+    {/* 🔐 Only show this if user is ADMIN */}
+    {user?.role === "ADMIN" && (
+      <>
+        <li style={navItemStyle}>
+          <FaUserPlus style={iconStyle} />
+          <Link to="/admin/createUser" style={linkStyle}>Create User</Link>
+        </li>
+        <li style={navItemStyle}>
+          <FaUserTimes style={iconStyle} />
+          <Link to="/admin/deleteUser" style={linkStyle}>Delete User</Link>
+        </li>
+      </>
+    )}
+  </ul>
+</div>
+
 
       <div style={bottomButtonContainerStyle}>
         {/* Settings container with relative positioning */}
