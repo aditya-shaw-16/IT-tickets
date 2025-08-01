@@ -1,0 +1,30 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Launch Chrome against Frontend",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/client",
+      "sourceMapPathOverrides": {
+        "/__parcel_source_root/*": "${webRoot}/*"
+      }
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch Vite Dev Server",
+      "cwd": "${workspaceFolder}/client",
+      "program": "${workspaceFolder}/client/node_modules/vite/bin/vite.js",
+      "args": ["--port", "5173"],
+      "console": "integratedTerminal"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Launch Frontend (Full)",
+      "configurations": ["Launch Vite Dev Server", "Launch Chrome against Frontend"]
+    }
+  ]
+}

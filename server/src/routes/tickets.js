@@ -39,7 +39,7 @@ router.post("/", async (req, res) => {
         description,
         priority,
         deadline,
-        employee: { connect: { id: user.id } },
+        employeeId: user.id, // ✅ Use employeeId instead of connect
       },
     });
 
@@ -47,6 +47,25 @@ router.post("/", async (req, res) => {
   } catch (err) {
     console.error("Ticket creation error:", err);
     res.status(401).json({ error: "Invalid or expired token" });
+  }
+});
+
+// GET /tickets - Get all tickets (for IT/Admin)
+router.get("/", authMiddleware, async (req, res) => {
+  try {
+    const tickets = await prisma.ticket.findMany({
+      where: {
+        status: { in: ["open", "resolved"] }, // Don't include closed tickets
+        archived: false, // Don't include archived tickets
+      },
+      include: { employee: true },
+      orderBy: { createdAt: "desc" },
+    });
+
+    res.json({ tickets });
+  } catch (err) {
+    console.error("Error fetching tickets:", err);
+    res.status(500).json({ error: "Failed to fetch tickets" });
   }
 });
 
@@ -101,6 +120,32 @@ router.patch("/:id/confirm", authMiddleware, async (req, res) => {
   } catch (err) {
     console.error("Error confirming ticket:", err);
     res.status(500).json({ error: "Failed to confirm ticket" });
+  }
+});
+
+// PATCH /tickets/:id/resolve - Resolve a ticket (for IT/Admin)
+router.patch("/:id/resolve", authMiddleware, async (req, res) => {
+  const ticketId = parseInt(req.params.id);
+
+  try {
+    const ticket = await prisma.ticket.findUnique({ where: { id: ticketId } });
+
+    if (!ticket) return res.status(404).json({ error: "Ticket not found" });
+    if (ticket.status !== "open")
+      return res.status(400).json({ error: "Only open tickets can be resolved" });
+
+    const updated = await prisma.ticket.update({
+      where: { id: ticketId },
+      data: { 
+        status: "resolved",
+        resolvedAt: new Date()
+      },
+    });
+
+    res.json({ message: "Ticket resolved", ticket: updated });
+  } catch (err) {
+    console.error("Error resolving ticket:", err);
+    res.status(500).json({ error: "Failed to resolve ticket" });
   }
 });
 
