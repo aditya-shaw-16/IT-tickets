@@ -2,6 +2,7 @@ import express from "express";
 import jwt from "jsonwebtoken";
 import { PrismaClient } from "@prisma/client";
 import authMiddleware from "../middleware/authMiddleware.js";
+import { calculateDeadline } from "../utils/calculateDeadline.js";
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -19,7 +20,9 @@ router.post("/", async (req, res) => {
     const { subject, description, priority = "P2" } = req.body;
 
     if (!subject || !description) {
-      return res.status(400).json({ error: "Subject and description are required" });
+      return res
+        .status(400)
+        .json({ error: "Subject and description are required" });
     }
 
     const user = await prisma.user.findUnique({ where: { id: decoded.id } });
@@ -28,11 +31,14 @@ router.post("/", async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
+    const deadline = calculateDeadline(priority);
+
     const newTicket = await prisma.ticket.create({
       data: {
         subject,
         description,
         priority,
+        deadline,
         employee: { connect: { id: user.id } },
       },
     });
@@ -43,6 +49,7 @@ router.post("/", async (req, res) => {
     res.status(401).json({ error: "Invalid or expired token" });
   }
 });
+
 
 // GET /tickets/mine - Get user's own tickets
 router.get("/mine", authMiddleware, async (req, res) => {
@@ -78,8 +85,12 @@ router.patch("/:id/confirm", authMiddleware, async (req, res) => {
     const ticket = await prisma.ticket.findUnique({ where: { id: ticketId } });
 
     if (!ticket) return res.status(404).json({ error: "Ticket not found" });
-    if (ticket.employeeId !== userId) return res.status(403).json({ error: "Unauthorized action" });
-    if (ticket.status !== "resolved") return res.status(400).json({ error: "Only resolved tickets can be confirmed" });
+    if (ticket.employeeId !== userId)
+      return res.status(403).json({ error: "Unauthorized action" });
+    if (ticket.status !== "resolved")
+      return res
+        .status(400)
+        .json({ error: "Only resolved tickets can be confirmed" });
 
     const updated = await prisma.ticket.update({
       where: { id: ticketId },
@@ -102,8 +113,12 @@ router.patch("/:id/deny", authMiddleware, async (req, res) => {
     const ticket = await prisma.ticket.findUnique({ where: { id: ticketId } });
 
     if (!ticket) return res.status(404).json({ error: "Ticket not found" });
-    if (ticket.employeeId !== userId) return res.status(403).json({ error: "Unauthorized action" });
-    if (ticket.status !== "resolved") return res.status(400).json({ error: "Only resolved tickets can be denied" });
+    if (ticket.employeeId !== userId)
+      return res.status(403).json({ error: "Unauthorized action" });
+    if (ticket.status !== "resolved")
+      return res
+        .status(400)
+        .json({ error: "Only resolved tickets can be denied" });
 
     const updated = await prisma.ticket.update({
       where: { id: ticketId },
@@ -121,21 +136,26 @@ router.patch("/:id/deny", authMiddleware, async (req, res) => {
 router.get("/summary", authMiddleware, async (req, res) => {
   try {
     const now = new Date();
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfToday = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate()
+    );
     const twoDaysAgo = new Date(now);
     twoDaysAgo.setDate(now.getDate() - 2);
 
-    const [open, resolved, confirmed, newTickets, approachingDeadlines] = await Promise.all([
-      prisma.ticket.count({ where: { status: "open" } }),
-      prisma.ticket.count({ where: { status: "resolved" } }),
-      prisma.ticket.count({ where: { status: "closed" } }),
-      prisma.ticket.count({
-        where: { status: "open", createdAt: { gte: startOfToday } },
-      }),
-      prisma.ticket.count({
-        where: { status: "open", createdAt: { lte: twoDaysAgo } },
-      }),
-    ]);
+    const [open, resolved, confirmed, newTickets, approachingDeadlines] =
+      await Promise.all([
+        prisma.ticket.count({ where: { status: "open" } }),
+        prisma.ticket.count({ where: { status: "resolved" } }),
+        prisma.ticket.count({ where: { status: "closed" } }),
+        prisma.ticket.count({
+          where: { status: "open", createdAt: { gte: startOfToday } },
+        }),
+        prisma.ticket.count({
+          where: { status: "open", createdAt: { lte: twoDaysAgo } },
+        }),
+      ]);
 
     res.json({ open, resolved, confirmed, newTickets, approachingDeadlines });
   } catch (err) {
@@ -144,7 +164,7 @@ router.get("/summary", authMiddleware, async (req, res) => {
   }
 });
 
-// PATCH /tickets/:id/priority - Update ticket priority
+// PATCH /tickets/:id/priority - Update ticket priority and deadline
 router.patch("/:id/priority", authMiddleware, async (req, res) => {
   const ticketId = parseInt(req.params.id);
   const { priority } = req.body;
@@ -154,25 +174,31 @@ router.patch("/:id/priority", authMiddleware, async (req, res) => {
   }
 
   try {
+    const newDeadline = calculateDeadline(priority); // ✅ Recalculate deadline
+
     const updated = await prisma.ticket.update({
       where: { id: ticketId },
-      data: { priority },
+      data: {
+        priority,
+        deadline: newDeadline, // ✅ Also update deadline
+      },
     });
 
-    res.json({ message: "Priority updated", ticket: updated });
+    res.json({ message: "Priority and deadline updated", ticket: updated });
   } catch (err) {
     console.error("Error updating priority:", err);
     res.status(500).json({ error: "Failed to update priority" });
   }
 });
 
+
 // GET /tickets/closed - Get all closed tickets
 router.get("/closed", authMiddleware, async (req, res) => {
   try {
     const tickets = await prisma.ticket.findMany({
-      where: { status: "closed" },
+      where: { status: "closed", archived: false }, // ensure not archived
       include: { employee: true },
-      orderBy: { updatedAt: "desc" },
+      orderBy: { resolvedAt: "desc" }, // ✅ use new field
     });
 
     res.json({ tickets });
@@ -182,72 +208,52 @@ router.get("/closed", authMiddleware, async (req, res) => {
   }
 });
 
-// PATCH /tickets/:id/requestDelete - IT/Admin request deletion
-router.patch("/:id/requestDelete", authMiddleware, async (req, res) => {
-  const ticketId = parseInt(req.params.id);
-  const userRole = req.user.role;
 
-  if (!["it", "admin"].includes(userRole)) {
-    return res.status(403).json({ error: "Only IT/Admin can request deletion" });
-  }
+// AUTO ARCHIVE FUNCTION
+export const archiveOldTickets = async () => {
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - 60); // 60 days ago
 
+  await prisma.ticket.updateMany({
+    where: {
+      status: "closed",
+      updatedAt: { lt: cutoffDate },
+      archived: false,
+    },
+    data: {
+      archived: true,
+      archivedAt: new Date(),
+      archiveReason: "Auto-archived (older than 60 days)",
+    },
+  });
+};
+
+// GET /tickets/archive - Get archived tickets
+router.get("/archive", authMiddleware, async (req, res) => {
   try {
-    const ticket = await prisma.ticket.update({
-      where: { id: ticketId },
-      data: { deletionRequested: true },
+    const archivedTickets = await prisma.ticket.findMany({
+      where: { archived: true },
+      include: { employee: true },
+      orderBy: { archivedAt: "desc" },
     });
 
-    res.json({
-      message: "🗑️ Deletion requested. Waiting for employee confirmation.",
-      ticket,
-    });
+    const formatted = archivedTickets.map((t) => ({
+      id: t.id,
+      subject: t.subject,
+      description: t.description,
+      status: t.status,
+      priority: t.priority,
+      archivedAt: t.archivedAt,
+      archiveReason: t.archiveReason,
+      employeeId: t.employee?.id, // ✅ ADD THIS
+      employeeName: t.employee.name,
+      employeeEmail: t.employee.email,
+    }));
+
+    res.json({ tickets: formatted });
   } catch (err) {
-    console.error("Error requesting deletion:", err);
-    res.status(500).json({ error: "Server error while requesting deletion" });
-  }
-});
-
-// DELETE /tickets/:id/confirmDelete - Employee confirms deletion
-router.delete("/:id/confirmDelete", authMiddleware, async (req, res) => {
-  const ticketId = parseInt(req.params.id);
-  const userId = req.user.id;
-
-  try {
-    const ticket = await prisma.ticket.findUnique({ where: { id: ticketId } });
-
-    if (!ticket) return res.status(404).json({ error: "Ticket not found" });
-    if (ticket.employeeId !== userId) return res.status(403).json({ error: "Unauthorized" });
-    if (!ticket.deletionRequested) return res.status(400).json({ error: "No deletion requested" });
-
-    await prisma.ticket.delete({ where: { id: ticketId } });
-
-    res.json({ message: "✅ Ticket deleted successfully" });
-  } catch (err) {
-    console.error("Error confirming deletion:", err);
-    res.status(500).json({ error: "Failed to delete ticket" });
-  }
-});
-
-// PATCH /tickets/:id/cancelDelete - Employee cancels deletion request
-router.patch("/:id/cancelDelete", authMiddleware, async (req, res) => {
-  const ticketId = parseInt(req.params.id);
-  const userId = req.user.id;
-
-  try {
-    const ticket = await prisma.ticket.findUnique({ where: { id: ticketId } });
-
-    if (!ticket) return res.status(404).json({ error: "Ticket not found" });
-    if (ticket.employeeId !== userId) return res.status(403).json({ error: "Unauthorized" });
-
-    const updated = await prisma.ticket.update({
-      where: { id: ticketId },
-      data: { deletionRequested: false },
-    });
-
-    res.json({ message: "❎ Deletion request cancelled", ticket: updated });
-  } catch (err) {
-    console.error("Error cancelling deletion:", err);
-    res.status(500).json({ error: "Failed to cancel deletion" });
+    console.error("Error fetching archived tickets:", err);
+    res.status(500).json({ error: "Failed to fetch archived tickets" });
   }
 });
 

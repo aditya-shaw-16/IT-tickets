@@ -1,18 +1,47 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
 
-function CreateUser() {
+function NewUser() {
   const [formData, setFormData] = useState({
+    employeeId: "",
     name: "",
     email: "",
-    id: "",
     password: "",
     confirmPassword: "",
-    role: "EMPLOYEE",
+    otp: "",
   });
+
+  const [otpSent, setOtpSent] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSendOtp = async () => {
+    if (!formData.email) {
+      toast.error("Enter your email first");
+      return;
+    }
+
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/send-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: formData.email }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        toast.success("OTP sent to your email!");
+        setOtpSent(true);
+      } else {
+        toast.error(data.error || "Failed to send OTP");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong");
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -23,41 +52,39 @@ function CreateUser() {
       return;
     }
 
-    const token = localStorage.getItem("token");
+    if (!formData.otp) {
+      toast.error("Enter the OTP sent to your email");
+      return;
+    }
 
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/admin/create-user`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            name: formData.name,
-            email: formData.email,
-            id: parseInt(formData.id),
-            password: formData.password,
-            role: formData.role,
-          }),
-        }
-      );
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          employeeId: formData.employeeId,
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          otp: formData.otp,
+        }),
+      });
 
       const data = await res.json();
 
       if (res.ok) {
-        toast.success("User created successfully!");
+        toast.success("Account created successfully!");
         setFormData({
+          employeeId: "",
           name: "",
           email: "",
-          id: "",
           password: "",
           confirmPassword: "",
-          role: "EMPLOYEE",
+          otp: "",
         });
+        setOtpSent(false);
       } else {
-        toast.error(data.error || "Failed to create user");
+        toast.error(data.error || "Failed to create account");
       }
     } catch (err) {
       console.error(err);
@@ -67,8 +94,17 @@ function CreateUser() {
 
   return (
     <div style={containerStyle}>
-      <h2 style={{ marginBottom: "1.5rem" }}>Create New User</h2>
+      <h2 style={{ marginBottom: "1.5rem" }}>Create a New Account</h2>
       <form onSubmit={handleSubmit} style={{ maxWidth: "400px", width: "100%" }}>
+        <input
+          type="text"
+          name="employeeId"
+          placeholder="Employee ID"
+          value={formData.employeeId}
+          onChange={handleChange}
+          required
+          style={inputStyle}
+        />
         <input
           type="text"
           name="name"
@@ -87,15 +123,24 @@ function CreateUser() {
           required
           style={inputStyle}
         />
+        <button
+          type="button"
+          onClick={handleSendOtp}
+          style={{ ...buttonStyle, backgroundColor: "#3b82f6", marginBottom: "1rem" }}
+        >
+          {otpSent ? "Resend OTP" : "Send OTP"}
+        </button>
+
         <input
           type="text"
-          name="id"
-          placeholder="Employee Code"
-          value={formData.id}
+          name="otp"
+          placeholder="Enter OTP"
+          value={formData.otp}
           onChange={handleChange}
           required
           style={inputStyle}
         />
+
         <input
           type="password"
           name="password"
@@ -114,20 +159,12 @@ function CreateUser() {
           required
           style={inputStyle}
         />
-        <select
-          name="role"
-          value={formData.role}
-          onChange={handleChange}
-          required
-          style={inputStyle}
-        >
-          <option value="EMPLOYEE">EMPLOYEE</option>
-          <option value="IT">IT</option>
-        </select>
-        <button type="submit" style={buttonStyle}>
-          Create User
-        </button>
+        <button type="submit" style={buttonStyle}>Register</button>
       </form>
+
+      <p style={{ marginTop: "1rem" }}>
+        Already have an account? <a href="/">Login</a>
+      </p>
     </div>
   );
 }
@@ -151,7 +188,7 @@ const inputStyle = {
 const buttonStyle = {
   width: "100%",
   padding: "0.75rem",
-  backgroundColor: "#2563eb",
+  backgroundColor: "#16a34a",
   color: "#fff",
   fontWeight: "bold",
   border: "none",
@@ -159,4 +196,4 @@ const buttonStyle = {
   cursor: "pointer",
 };
 
-export default CreateUser;
+export default NewUser;

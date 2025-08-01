@@ -1,16 +1,23 @@
 function TicketCard({ ticket, userRole }) {
   const handleResolve = async () => {
-    try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/tickets/${ticket.id}/resolve`, {
-        method: 'PATCH',
-      });
-      if (res.ok) {
-        window.location.reload();
-      }
-    } catch (err) {
-      console.error('Error resolving ticket:', err);
+  try {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/tickets/${ticket.id}/resolve`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
+    });
+    if (res.ok) {
+      window.location.reload();
+    } else {
+      const errData = await res.json();
+      console.error('Resolve failed:', errData); // ✅ inspect in console
     }
-  };
+  } catch (err) {
+    console.error('Error resolving ticket:', err);
+  }
+};
+
 
   const handleConfirm = async () => {
     try {
@@ -74,7 +81,18 @@ function TicketCard({ ticket, userRole }) {
     }
   };
 
-  const formattedDate = new Date(ticket.createdAt).toLocaleDateString();
+  const formattedDate = new Date(ticket.createdAt).toLocaleString('en-IN', {
+  dateStyle: 'medium',
+  timeStyle: 'short',
+});
+
+const formattedDeadline = ticket.deadline
+  ? new Date(ticket.deadline).toLocaleString('en-IN', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    })
+  : 'Not Set';
+
 
   return (
     <div style={{
@@ -94,6 +112,7 @@ function TicketCard({ ticket, userRole }) {
         {ticket.employee?.name || 'Unknown'} ({ticket.employee?.email || 'N/A'})
       </p>
       <p><strong>Date:</strong> {formattedDate}</p>
+      <p><strong>Deadline:</strong> {formattedDeadline}</p>
 
       {/* IT-specific priority dropdown */}
       {userRole === 'it' && ticket.status === 'open' && (

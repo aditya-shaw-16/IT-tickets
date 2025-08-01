@@ -15,6 +15,7 @@ function History() {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
+        console.log('Fetched closed tickets:', data);
         if (res.ok) setTickets(data.tickets);
         else console.error(data.error);
       } catch (err) {
@@ -27,9 +28,13 @@ function History() {
     fetchClosedTickets();
   }, []);
 
-  const filteredTickets = tickets.filter(ticket =>
-    ticket.employeeId.toString().includes(searchId.trim())
-  );
+  const filteredTickets = tickets.filter(ticket => {
+    const searchTerm = searchId.trim().toLowerCase();
+    return (
+      ticket.employee?.name?.toLowerCase().includes(searchTerm) ||
+      ticket.employee?.email?.toLowerCase().includes(searchTerm)
+    );
+  });
 
   return (
     <div style={{ display: 'flex' }}>
@@ -39,7 +44,7 @@ function History() {
 
         <input
           type="text"
-          placeholder="Search by Employee ID"
+          placeholder="Search by Employee Name or Email"
           value={searchId}
           onChange={(e) => setSearchId(e.target.value)}
           style={{
@@ -90,7 +95,11 @@ function History() {
                   <td style={tdStyle}>{ticket.subject}</td>
                   <td style={tdStyle}>{ticket.description}</td>
                   <td style={tdStyle}>{new Date(ticket.createdAt).toLocaleDateString()}</td>
-                  <td style={tdStyle}>{new Date(ticket.updatedAt).toLocaleDateString()}</td>
+                  <td style={tdStyle}>
+                    {ticket.resolvedAt
+                      ? new Date(ticket.resolvedAt).toLocaleDateString()
+                      : '—'}
+                  </td>
                 </tr>
               ))}
             </tbody>

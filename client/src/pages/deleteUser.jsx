@@ -2,72 +2,135 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 
 function DeleteUser() {
-  const [email, setEmail] = useState("");
+  const [formData, setFormData] = useState({
+    id: "",
+    email: "",
+  });
 
-  const handleDelete = async (e) => {
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     const token = localStorage.getItem("token");
 
     try {
-      const res = await fetch("http://localhost:4000/api/admin/delete-user", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/users`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({
+          id: formData.id,
+          email: formData.email,
+        }),
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        toast.success("User deleted successfully!");
-        setEmail("");
+        toast.success("✅ User deleted successfully");
+        setFormData({ id: "", email: "" });
       } else {
-        toast.error(data.error || "Failed to delete user");
+        toast.error(data.error || "❌ Failed to delete user");
       }
     } catch (err) {
       console.error(err);
-      toast.error("Something went wrong");
+      toast.error("⚠️ Something went wrong");
     }
   };
 
   return (
-    <div style={{ padding: "2rem" }}>
-      <h2>Delete User</h2>
-      <form onSubmit={handleDelete} style={{ maxWidth: "400px" }}>
-        <input
-          type="email"
-          name="email"
-          placeholder="Enter User's Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          style={inputStyle}
-        />
-        <button type="submit" style={buttonStyle}>
-          Delete User
-        </button>
-      </form>
+    <div style={pageStyle}>
+      <div style={cardStyle}>
+        <h2 style={titleStyle}>🗑️ Delete User</h2>
+        <form onSubmit={handleSubmit} style={{ width: "100%" }}>
+          <label style={labelStyle}>Employee ID</label>
+          <input
+            type="text"
+            name="id"
+            value={formData.id}
+            onChange={handleChange}
+            placeholder="Enter Employee ID"
+            required
+            style={inputStyle}
+          />
+
+          <label style={labelStyle}>Email</label>
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            placeholder="Enter Email"
+            required
+            style={inputStyle}
+          />
+
+          <button type="submit" style={buttonStyle}>Delete User</button>
+        </form>
+      </div>
     </div>
   );
 }
 
+// 💄 Styles
+const pageStyle = {
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  paddingTop: "2rem",
+  paddingBottom: "2rem",
+  backgroundColor: "#f9fafb",
+};
+
+
+const cardStyle = {
+  backgroundColor: "#ffffff",
+  padding: "2rem",
+  borderRadius: "12px",
+  boxShadow: "0 6px 20px rgba(0,0,0,0.1)",
+  width: "100%",
+  maxWidth: "450px",
+};
+
+const titleStyle = {
+  fontSize: "1.75rem",
+  marginBottom: "1.5rem",
+  textAlign: "center",
+  color: "#dc2626",
+};
+
+const labelStyle = {
+  display: "block",
+  marginBottom: "0.5rem",
+  fontWeight: "bold",
+  color: "#374151",
+};
+
 const inputStyle = {
   width: "100%",
   padding: "0.75rem",
-  marginBottom: "1rem",
-  border: "1px solid #ccc",
-  borderRadius: "4px",
+  marginBottom: "1.25rem",
+  border: "1px solid #d1d5db",
+  borderRadius: "8px",
+  fontSize: "1rem",
 };
 
 const buttonStyle = {
-  padding: "0.75rem 1.5rem",
+  width: "100%",
+  padding: "0.75rem",
   backgroundColor: "#dc2626",
-  color: "#fff",
+  color: "#ffffff",
+  fontWeight: "bold",
+  fontSize: "1rem",
   border: "none",
-  borderRadius: "4px",
+  borderRadius: "8px",
   cursor: "pointer",
+  transition: "background 0.2s ease-in-out",
 };
 
 export default DeleteUser;

@@ -23,7 +23,7 @@ function Login() {
         localStorage.setItem("user", JSON.stringify(data.user));
 
         // ✅ Redirect based on role
-        if (data.user.role === "EMPLOYEE" ) {
+        if (data.user.role === "EMPLOYEE") {
           window.location.href = "/myDashboard";
         } else if (data.user.role === "IT" || data.user.role === "ADMIN") {
           window.location.href = "/dashboard";
@@ -65,18 +65,25 @@ function Login() {
             onChange={(e) => setPassword(e.target.value)}
             style={{ width: "100%", padding: "8px" }}
           />
-          <p style={{ marginTop: '0.5rem' }}>
-            <a href="/forgotPassword" style={{ color: '#007bff', textDecoration: 'none' }}>
+          <p style={{ marginTop: "0.5rem" }}>
+            <a href="/forgotPassword" style={{ color: "#007bff", textDecoration: "none" }}>
               Forgot Password?
             </a>
           </p>
-
         </div>
 
-        <button type="submit" style={{ padding: "8px 16px" }}>
+        <button type="submit" style={{ padding: "8px 16px", width: "100%" }}>
           Login
         </button>
       </form>
+
+      {/* New User Link */}
+      <p style={{ marginTop: "1rem", textAlign: "center" }}>
+        New user?{" "}
+        <a href="/new-user" style={{ color: "#007bff", textDecoration: "none" }}>
+          Create an account
+        </a>
+      </p>
     </div>
   );
 }

@@ -3,9 +3,10 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
 
 enum Role {
   EMPLOYEE
@@ -14,17 +15,20 @@ enum Role {
 }
 
 model User {
-  id                Int      @id @default(autoincrement())
-  name              String
-  email             String   @unique
-  phone             String?
-  password          String
-  role              Role     @default(EMPLOYEE)
-  tickets           Ticket[]
+  id               Int       @id
+  name             String
+  email            String    @unique
+  password         String
+  role             Role      @default(EMPLOYEE)
+  tickets          Ticket[]
 
-  resetToken        String?     // token for password reset
-  resetTokenExpiry  DateTime?   // expiry time of the token
+  resetToken       String?     // token for password reset
+  resetTokenExpiry DateTime?   // expiry time of the token
+
+  otp              String?     // OTP for email verification
+  otpExpiry        DateTime?   // Expiry for OTP
 }
+
 
 
 model Ticket {
@@ -34,19 +38,20 @@ model Ticket {
   status             String    @default("open")
   priority           String    @default("P2")
   createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
+  deadline           DateTime
+  resolvedAt         DateTime?
   employee           User      @relation(fields: [employeeId], references: [id])
   employeeId         Int
-  deletionRequested  Boolean   @default(false) // ✅ NEW
+  archived           Boolean   @default(false)
+  archivedAt         DateTime?
+  archiveReason      String?
 }
 
 
-model Otp {
-  id        Int      @id @default(autoincrement())
-  email     String
-  phone     String
-  otp       String
-  expiresAt DateTime
-  createdAt DateTime @default(now())
+model NotificationContacts {
+  id               Int    @id @default(autoincrement())
+  itTeamLeadName   String
+  itTeamLeadEmail  String
+  managerName      String
+  managerEmail     String
 }
-

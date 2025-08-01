@@ -8,6 +8,14 @@ export const transporter = nodemailer.createTransport({
   },
 });
 
+export const escalationTransporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.ESCALATION_EMAIL_USER,
+    pass: process.env.ESCALATION_EMAIL_PASS,
+  },
+});
+
 export const sendResetEmail = async (to, resetUrl) => {
   await transporter.sendMail({
     from: `"IT Ticketing Support" <${process.env.EMAIL_USER}>`,
@@ -17,6 +25,17 @@ export const sendResetEmail = async (to, resetUrl) => {
       <p>Click the link below to reset your password. This link is valid for 15 minutes:</p>
       <a href="${resetUrl}">${resetUrl}</a>
       <p>If you didn't request this, please ignore this email.</p>
+    `,
+  });
+};
+
+export const sendEscalationEmail = async (to, subject, message) => {
+  await escalationTransporter.sendMail({
+    from: `"Ticket Escalation Alert" <${process.env.ESCALATION_EMAIL_USER}>`,
+    to,
+    subject,
+    html: `
+      <p>${message}</p>
     `,
   });
 };
