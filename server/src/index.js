@@ -6,7 +6,6 @@ import authRoutes from './routes/auth.js';
 import adminRoutes from './routes/admin.js'; 
 import ticketsRouter from './routes/tickets.js';
 import contactRoutes from './routes/contacts.js';
-import debugRoutes from './routes/debug.js';
 import './utils/escalationCron.js'; // Import escalation cron job
 
 import path from 'path';
@@ -26,7 +25,6 @@ app.use('/auth', authRoutes);
 app.use('/api/tickets', ticketsRouter);
 app.use('/api/admin', adminRoutes);
 app.use('/api/contacts', contactRoutes);
-app.use('/api/debug', debugRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {
