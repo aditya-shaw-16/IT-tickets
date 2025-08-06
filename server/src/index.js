@@ -21,7 +21,7 @@ const prisma = new PrismaClient();
 app.use(cors());
 app.use(express.json());
 app.use('/auth', authRoutes);
-app.use('/tickets', ticketsRouter);
+app.use('/api/tickets', ticketsRouter);
 app.use('/api/admin', adminRoutes);
 app.use('/api/contacts', contactRoutes);
 
@@ -39,8 +39,7 @@ app.use(express.static(distPath));
 app.use((req, res, next) => {
   // If it's an API route, continue to next middleware
   if (req.path.startsWith('/api') || 
-      req.path.startsWith('/auth') || 
-      req.path.startsWith('/tickets')) {
+      req.path.startsWith('/auth')) {
     return next();
   }
   // Otherwise, serve the React app

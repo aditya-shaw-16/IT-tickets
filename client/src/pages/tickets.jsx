@@ -12,7 +12,7 @@ function Tickets() {
     const fetchTickets = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/tickets`, {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/tickets`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

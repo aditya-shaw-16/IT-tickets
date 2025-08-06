@@ -29,6 +29,16 @@ model User {
   otpExpiry        DateTime?   // Expiry for OTP
 }
 
+model DeletedUser {
+  id               Int       @id
+  name             String
+  email            String
+  role             Role
+  deletedAt        DateTime  @default(now())
+  deletedBy        String    // Admin who deleted the user
+  tickets          Ticket[]
+}
+
 
 
 model Ticket {
@@ -40,8 +50,15 @@ model Ticket {
   createdAt          DateTime  @default(now())
   deadline           DateTime
   resolvedAt         DateTime?
-  employee           User      @relation(fields: [employeeId], references: [id])
-  employeeId         Int
+  
+  // Active user reference (nullable for deleted users)
+  employee           User?     @relation(fields: [employeeId], references: [id])
+  employeeId         Int?
+  
+  // Deleted user reference (nullable for active users)
+  deletedEmployee    DeletedUser? @relation(fields: [deletedEmployeeId], references: [id])
+  deletedEmployeeId  Int?
+  
   archived           Boolean   @default(false)
   archivedAt         DateTime?
   archiveReason      String?

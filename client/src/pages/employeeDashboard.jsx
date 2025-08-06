@@ -13,7 +13,7 @@ function EmployeeDashboard() {
     const token = localStorage.getItem("token");
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/tickets/mine`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/tickets/mine`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -40,7 +40,7 @@ function EmployeeDashboard() {
     const token = localStorage.getItem("token");
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/tickets/${id}/confirm`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/tickets/${id}/confirm`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

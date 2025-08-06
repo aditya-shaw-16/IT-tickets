@@ -1,27 +1,39 @@
 function TicketCard({ ticket, userRole }) {
   const handleResolve = async () => {
   try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/tickets/${ticket.id}/resolve`, {
+    console.log('Attempting to resolve ticket:', ticket.id);
+    console.log('API URL:', import.meta.env.VITE_API_URL);
+    console.log('Token:', localStorage.getItem('token') ? 'Present' : 'Missing');
+    
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/tickets/${ticket.id}/resolve`, {
       method: 'PATCH',
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json'
       },
     });
+    
+    console.log('Response status:', res.status);
+    
     if (res.ok) {
+      const data = await res.json();
+      console.log('Success:', data);
       window.location.reload();
     } else {
       const errData = await res.json();
-      console.error('Resolve failed:', errData); // ✅ inspect in console
+      console.error('Resolve failed:', errData);
+      alert(`Failed to resolve ticket: ${errData.error || 'Unknown error'}`);
     }
   } catch (err) {
     console.error('Error resolving ticket:', err);
+    alert('Network error while resolving ticket');
   }
 };
 
 
   const handleConfirm = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/tickets/${ticket.id}/confirm`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/tickets/${ticket.id}/confirm`, {
         method: 'PATCH',
         headers: {
           "Content-Type": "application/json",
@@ -41,7 +53,7 @@ function TicketCard({ ticket, userRole }) {
 
   const handleDeny = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/tickets/${ticket.id}/deny`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/tickets/${ticket.id}/deny`, {
         method: 'PATCH',
         headers: {
           "Content-Type": "application/json",
@@ -62,7 +74,7 @@ function TicketCard({ ticket, userRole }) {
   const handlePriorityChange = async (e) => {
     const newPriority = e.target.value;
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/tickets/${ticket.id}/priority`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/tickets/${ticket.id}/priority`, {
         method: 'PATCH',
         headers: {
           "Content-Type": "application/json",
@@ -109,7 +121,8 @@ const formattedDeadline = ticket.deadline
       <p><strong>Priority:</strong> {ticket.priority || 'Not assigned'}</p>
       <p>
         <strong>Raised by:</strong>{' '}
-        {ticket.employee?.name || 'Unknown'} ({ticket.employee?.email || 'N/A'})
+        {ticket.employee?.name || ticket.deletedEmployee?.name || 'Unknown'} ({ticket.employee?.email || ticket.deletedEmployee?.email || 'N/A'})
+        {ticket.deletedEmployee && <span style={{ color: '#666', fontStyle: 'italic' }}> (Account Deleted)</span>}
       </p>
       <p><strong>Date:</strong> {formattedDate}</p>
       <p><strong>Deadline:</strong> {formattedDeadline}</p>

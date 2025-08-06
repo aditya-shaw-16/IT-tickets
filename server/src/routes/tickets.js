@@ -58,7 +58,10 @@ router.get("/", authMiddleware, async (req, res) => {
         status: { in: ["open", "resolved"] }, // Don't include closed tickets
         archived: false, // Don't include archived tickets
       },
-      include: { employee: true },
+      include: { 
+        employee: true,
+        deletedEmployee: true 
+      },
       orderBy: { createdAt: "desc" },
     });
 
@@ -84,7 +87,10 @@ router.get("/mine", authMiddleware, async (req, res) => {
         status: { in: ["open", "resolved", "closed"] },
         createdAt: { gte: sixtyDaysAgo },
       },
-      include: { employee: true },
+      include: { 
+        employee: true,
+        deletedEmployee: true 
+      },
       orderBy: { createdAt: "desc" },
     });
 
@@ -126,13 +132,34 @@ router.patch("/:id/confirm", authMiddleware, async (req, res) => {
 // PATCH /tickets/:id/resolve - Resolve a ticket (for IT/Admin)
 router.patch("/:id/resolve", authMiddleware, async (req, res) => {
   const ticketId = parseInt(req.params.id);
+  const user = req.user;
+
+  console.log(`[RESOLVE TICKET] User: ${user.email} (${user.role}) trying to resolve ticket ${ticketId}`);
+
+  // Check if user has IT or ADMIN role
+  if (user.role !== 'IT' && user.role !== 'ADMIN') {
+    console.log(`[RESOLVE TICKET] Access denied for role: ${user.role}`);
+    return res.status(403).json({ error: "Only IT and Admin users can resolve tickets" });
+  }
 
   try {
-    const ticket = await prisma.ticket.findUnique({ where: { id: ticketId } });
+    const ticket = await prisma.ticket.findUnique({ 
+      where: { id: ticketId },
+      include: { 
+        employee: true,
+        deletedEmployee: true 
+      }
+    });
 
-    if (!ticket) return res.status(404).json({ error: "Ticket not found" });
-    if (ticket.status !== "open")
+    if (!ticket) {
+      console.log(`[RESOLVE TICKET] Ticket ${ticketId} not found`);
+      return res.status(404).json({ error: "Ticket not found" });
+    }
+    
+    if (ticket.status !== "open") {
+      console.log(`[RESOLVE TICKET] Ticket ${ticketId} status is ${ticket.status}, not open`);
       return res.status(400).json({ error: "Only open tickets can be resolved" });
+    }
 
     const updated = await prisma.ticket.update({
       where: { id: ticketId },
@@ -142,6 +169,7 @@ router.patch("/:id/resolve", authMiddleware, async (req, res) => {
       },
     });
 
+    console.log(`[RESOLVE TICKET] Successfully resolved ticket ${ticketId}`);
     res.json({ message: "Ticket resolved", ticket: updated });
   } catch (err) {
     console.error("Error resolving ticket:", err);
@@ -242,7 +270,10 @@ router.get("/closed", authMiddleware, async (req, res) => {
   try {
     const tickets = await prisma.ticket.findMany({
       where: { status: "closed", archived: false }, // ensure not archived
-      include: { employee: true },
+      include: { 
+        employee: true,
+        deletedEmployee: true 
+      },
       orderBy: { resolvedAt: "desc" }, // ✅ use new field
     });
 
@@ -278,7 +309,10 @@ router.get("/archive", authMiddleware, async (req, res) => {
   try {
     const archivedTickets = await prisma.ticket.findMany({
       where: { archived: true },
-      include: { employee: true },
+      include: { 
+        employee: true,
+        deletedEmployee: true 
+      },
       orderBy: { archivedAt: "desc" },
     });
 
@@ -290,9 +324,9 @@ router.get("/archive", authMiddleware, async (req, res) => {
       priority: t.priority,
       archivedAt: t.archivedAt,
       archiveReason: t.archiveReason,
-      employeeId: t.employee?.id, // ✅ ADD THIS
-      employeeName: t.employee.name,
-      employeeEmail: t.employee.email,
+      employeeId: t.employee?.id || t.deletedEmployee?.id,
+      employeeName: t.employee?.name || t.deletedEmployee?.name || 'Deleted User',
+      employeeEmail: t.employee?.email || t.deletedEmployee?.email || 'N/A',
     }));
 
     res.json({ tickets: formatted });

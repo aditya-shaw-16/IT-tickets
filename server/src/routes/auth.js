@@ -154,6 +154,7 @@ router.post('/forgot-password', async (req, res) => {
 
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
     console.log(`[🔐 RESET LINK] ${resetUrl}`);
+    console.log(`[📍 FRONTEND_URL ENV] ${process.env.FRONTEND_URL}`);
 
     await sendResetEmail(email, resetUrl); // ✅ use the actual utility function
 

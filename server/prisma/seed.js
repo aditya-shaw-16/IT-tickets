@@ -7,34 +7,62 @@ async function seed() {
   const password1 = await bcrypt.hash("123456", 10);  // Matches your login
   const password2 = await bcrypt.hash("emp456", 10);
   const password3 = await bcrypt.hash("123456", 10); 
+  const adminPassword = await bcrypt.hash("admin123", 10);
 
   await prisma.user.createMany({
     data: [
       {
-        name: "Alice Sharma",
+        id: 1,
+        name: "Alice Sharma", 
         email: "alice@company.com",
-        phone: "9876543210",
         password: password1,
         role: "EMPLOYEE",
       },
       {
+        id: 2,
         name: "Ravi Singh",
         email: "ravi@company.com",
-        phone: "9123456780",
         password: password2,
         role: "EMPLOYEE",
       },
       {
-        name: "IT",
+        id: 3,
+        name: "IT Support",
         email: "imadishaw@gmail.com",
-        phone: "8287277566",
         password: password3,
         role: "IT",
+      },
+      {
+        id: 4,
+        name: "Admin User",
+        email: "admin@company.com", 
+        password: adminPassword,
+        role: "ADMIN",
       },
     ],
   });
 
-  console.log("✅ Seeded 2 employee users");
+  // Create some sample tickets for testing
+  await prisma.ticket.createMany({
+    data: [
+      {
+        subject: "Computer not starting",
+        description: "My computer won't boot up this morning",
+        employeeId: 1,
+        priority: "P1",
+        deadline: new Date(Date.now() + 24 * 60 * 60 * 1000), // 1 day from now
+      },
+      {
+        subject: "Email not working",
+        description: "Cannot send or receive emails",
+        employeeId: 2,
+        priority: "P2", 
+        deadline: new Date(Date.now() + 48 * 60 * 60 * 1000), // 2 days from now
+      },
+    ],
+  });
+
+  console.log("✅ Seeded 4 users (2 employees, 1 IT, 1 admin) and 2 tickets");
   await prisma.$disconnect();
 }
 

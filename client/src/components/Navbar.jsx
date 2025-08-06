@@ -81,15 +81,6 @@ function Navbar() {
               >
                 Change Password
               </div>
-              <div
-                onClick={() => {
-                  setShowMenu(false);
-                  navigate('/changePhone');
-                }}
-                style={dropdownItemStyle}
-              >
-                Change Phone Number
-              </div>
             </div>
           )}
         </div>

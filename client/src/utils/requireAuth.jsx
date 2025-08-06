@@ -3,7 +3,6 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom';
 const roleRoutes = {
   all: [
     '/changePassword',
-    '/changePhone',
     '/forgotPassword',
     '/reset-password',
     '/raiseTicket',

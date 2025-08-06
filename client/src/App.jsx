@@ -11,7 +11,6 @@ import History from './pages/history';
 import EmployeeDashboard from './pages/employeeDashboard';
 import EmployeeTickets from './pages/employeeTickets';
 import ChangePassword from './pages/changePassword';
-import ChangePhone from './pages/changePhone';
 import ResetPassword from './pages/resetPassword';
 import ForgotPassword from './pages/forgotPassword';
 import RaiseEmployeeTicket from './pages/raiseEmployeeTicket';
@@ -35,7 +34,6 @@ function App() {
         {/* Authenticated for All */}
         <Route element={<RequireAuth allowedRoles={['EMPLOYEE', 'IT', 'ADMIN']} />}>
           <Route path="/changePassword" element={<ChangePassword />} />
-          <Route path="/changePhone" element={<ChangePhone />} />
           <Route path="/raiseTicket" element={<RaiseTicket />} />
         </Route>
 

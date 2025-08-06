@@ -11,7 +11,7 @@ function History() {
     const fetchClosedTickets = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/tickets/closed`, {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/tickets/closed`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();

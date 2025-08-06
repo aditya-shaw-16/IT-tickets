@@ -13,7 +13,12 @@ function AdminEscalationConfig() {
   useEffect(() => {
     const fetchContacts = async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/contacts`);
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/contacts`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
         if (res.ok) {
           const data = await res.json();
           // Ensure all values are non-null and non-undefined
@@ -43,9 +48,13 @@ function AdminEscalationConfig() {
     e.preventDefault();
     toast.info("Saving contacts...");
     try {
+      const token = localStorage.getItem('token');
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/contacts`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
         body: JSON.stringify(formData),
       });
 

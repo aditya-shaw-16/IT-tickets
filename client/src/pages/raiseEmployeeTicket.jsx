@@ -22,7 +22,7 @@ function RaiseEmployeeTicket() {
     }
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/tickets/raiseForEmployee`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/tickets/raiseForEmployee`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -55,7 +55,7 @@ function RaiseEmployeeTicket() {
     const token = localStorage.getItem('token');
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/tickets/verifyOTP`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/tickets/verifyOTP`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

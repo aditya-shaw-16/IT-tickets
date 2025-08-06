@@ -11,7 +11,7 @@ function Archive() {
     const fetchArchivedTickets = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/tickets/archive`, {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/tickets/archive`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 

@@ -11,7 +11,7 @@ function EmployeeTickets() {
       const token = localStorage.getItem("token");
 
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/tickets/mine`, {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/tickets/mine`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
