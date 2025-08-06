@@ -10,25 +10,35 @@ const prisma = new PrismaClient();
 // Save or update contact details
 router.post("/", authMiddleware, adminMiddleware, async (req, res) => {
   const { itLeadName, itLeadEmail, managerName, managerEmail } = req.body;
+  
+  console.log("Received contact data:", { itLeadName, itLeadEmail, managerName, managerEmail });
 
   try {
     const existing = await prisma.notificationContacts.findFirst();
+    console.log("Existing contact record:", existing);
 
     if (existing) {
       const updated = await prisma.notificationContacts.update({
         where: { id: existing.id },
         data: {
-          itTeamLeadName: req.body.itLeadName,
-          itTeamLeadEmail: req.body.itLeadEmail,
-          managerName: req.body.managerName,
-          managerEmail: req.body.managerEmail,
+          itTeamLeadName: itLeadName,
+          itTeamLeadEmail: itLeadEmail,
+          managerName: managerName,
+          managerEmail: managerEmail,
         },
       });
+      console.log("Updated contact record:", updated);
       return res.json({ message: "Contact info updated", data: updated });
     } else {
       const created = await prisma.notificationContacts.create({
-        data: { itLeadName, itLeadEmail, managerName, managerEmail },
+        data: { 
+          itTeamLeadName: itLeadName,
+          itTeamLeadEmail: itLeadEmail, 
+          managerName: managerName, 
+          managerEmail: managerEmail 
+        },
       });
+      console.log("Created new contact record:", created);
       return res.json({ message: "Contact info saved", data: created });
     }
   } catch (err) {
